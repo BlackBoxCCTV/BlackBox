@@ -25,7 +25,9 @@ def handle_client(conn, addr, camera_id):
             frame = pickle.loads(frame_data)
 
             # Display each camera in a different window
-            cv2.imwrite(f"camera_{camera_id}_frame.jpg", frame)
+            if frame is not None:
+                cv2.imshow(f"Camera {camera_id}", frame)
+            print(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
@@ -36,7 +38,7 @@ def handle_client(conn, addr, camera_id):
     conn.close()
     cv2.destroyWindow(f"Camera {camera_id}")
 
-def start_server(host='0.0.0.0', port=25565):
+def start_server(host='127.0.0.1', port=25565):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, port))
     server_socket.listen(5)
@@ -49,4 +51,8 @@ def start_server(host='0.0.0.0', port=25565):
         thread = threading.Thread(target=handle_client, args=(conn, addr, camera_id))
         thread.start()
 
-start_server()
+def main():
+    start_server()
+
+if __name__ == "__main__":
+    main()
