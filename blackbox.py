@@ -1,4 +1,19 @@
 import socket, threading, pickle, struct, cv2
+import face_recognition
+import sys
+
+def facial_recognition(frame):
+    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    rgb_small_frame = small_frame[:, :, ::-1]
+    rgb_img = cv2.cvtColor(rgb_small_frame, cv2.COLOR_BGR2RGB)
+    face_locations  = face_recognition.face_locations(rgb_img)
+    for top,right,bottom,left in face_locations:
+        top *= 4
+        right *= 4
+        bottom *= 4
+        left *= 4
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
 
 def handle_client(conn, addr, camera_id):
     print(f"Camera {camera_id} connected from {addr}")
@@ -26,13 +41,16 @@ def handle_client(conn, addr, camera_id):
 
             # Display each camera in a different window
             if frame is not None:
+                facial_recognition(frame)
                 cv2.imshow(f"Camera {camera_id}", frame)
+
             print(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
         except Exception as e:
-            print(f"Lost connection with Camera {camera_id}: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Lost connection with Camera {camera_id}: {e} {exc_tb.tb_lineno}")
             break
 
     conn.close()
